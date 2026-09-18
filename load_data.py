@@ -1,8 +1,8 @@
 import csv
 import sqlite3
 from pathlib import Path
+from db import DB_PATH, get_connection
 
-DB_PATH = Path(__file__).parent / "cell_count.db"
 CSV_PATH = Path(__file__).parent / "cell-count.csv"
 
 POPULATIONS = ["b_cell", "cd8_t_cell", "cd4_t_cell", "nk_cell" ,"monocyte"]
@@ -76,8 +76,7 @@ def main() -> None:
     if DB_PATH.exists():
         DB_PATH.unlink()
     
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA foreign_keys = ON")
+    conn = get_connection()
     try:
         init_db(conn)
         load_csv(conn, CSV_PATH)

@@ -35,10 +35,14 @@ CREATE TABLE IF NOT EXISTS cell_counts (
 );
 """
 
+
 def init_db(conn: sqlite3.Connection) -> None:
+    """Create the database schema"""
     conn.executescript(SCHEMA)
 
+
 def load_csv(conn: sqlite3.Connection, csv_path: Path) -> None:
+    """Load the CSV into the schema, assuming schema already exists."""
     with open(csv_path, newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -48,14 +52,14 @@ def load_csv(conn: sqlite3.Connection, csv_path: Path) -> None:
                     (subject, project, condition, age, sex, treatment, response)
                 VALUES(?, ?, ?, ?, ?, ?, ?)
                 """,
-                (row["subject"], row["project"], row["condition"], row["age"], row["sex"], row["treatment"], row["response"])
+                (row["subject"], row["project"], row["condition"], int(row["age"]), row["sex"], row["treatment"], row["response"])
             )
             conn.execute(
                 """
                 INSERT INTO samples (sample, subject, sample_type, time_from_treatment_start)
                 VALUES (?, ?, ?, ?)
                 """,
-                (row["sample"], row["subject"], row["sample_type"], row["time_from_treatment_start"])
+                (row["sample"], row["subject"], row["sample_type"], int(row["time_from_treatment_start"]))
             )
             for population in POPULATIONS:
                 conn.execute(
@@ -63,11 +67,17 @@ def load_csv(conn: sqlite3.Connection, csv_path: Path) -> None:
                     INSERT INTO cell_counts (sample, population, count)
                     VALUES (?, ?, ?)
                     """,
-                    (row["sample"], population, row[population])
+                    (row["sample"], population, int(row[population]))
                 )
 
+
 def main() -> None:
+    """Delete any existing database, then rebuild it from the CSV."""
+    if DB_PATH.exists():
+        DB_PATH.unlink()
+    
     conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
     try:
         init_db(conn)
         load_csv(conn, CSV_PATH)

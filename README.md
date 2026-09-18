@@ -2,7 +2,7 @@
 
 Analysis pipeline and dashboard for immune cell population frequencies across patient samples in a clincal trial.
 
-## Steup 
+## Setup 
 
 This project is designed to run in GitHub Codespaces.
 

@@ -9,7 +9,7 @@ POPULATIONS = ["b_cell", "cd8_t_cell", "cd4_t_cell", "nk_cell" ,"monocyte"]
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS subjects (
-    subject     TEXT PRIMARY KEY,
+    subject_id  TEXT PRIMARY KEY,
     project     TEXT NOT NULL,
     condition   TEXT NOT NULL,
     age         INTEGER,
@@ -19,19 +19,19 @@ CREATE TABLE IF NOT EXISTS subjects (
 );
 
 CREATE TABLE IF NOT EXISTS samples (
-    sample          TEXT PRIMARY KEY,
-    subject         TEXT NOT NULL,
+    sample_id       TEXT PRIMARY KEY,
+    subject_id      TEXT NOT NULL,
     sample_type     TEXT NOT NULL,
     time_from_treatment_start INTEGER,
-    FOREIGN KEY (subject) REFERENCES subjects (subject)
+    FOREIGN KEY (subject_id) REFERENCES subjects (subject_id)
 );
 
 CREATE TABLE IF NOT EXISTS cell_counts (
-    sample      TEXT NOT NULL,
+    sample_id   TEXT NOT NULL,
     population  TEXT NOT NULL,
     count       INTEGER NOT NULL,
-    FOREIGN KEY (sample) REFERENCES samples (sample),
-    UNIQUE (sample, population)
+    PRIMARY KEY (sample_id, population),
+    FOREIGN KEY (sample_id) REFERENCES samples (sample_id)
 );
 """
 
@@ -49,14 +49,14 @@ def load_csv(conn: sqlite3.Connection, csv_path: Path) -> None:
             conn.execute(
                 """
                 INSERT OR IGNORE INTO subjects
-                    (subject, project, condition, age, sex, treatment, response)
+                    (subject_id, project, condition, age, sex, treatment, response)
                 VALUES(?, ?, ?, ?, ?, ?, ?)
                 """,
                 (row["subject"], row["project"], row["condition"], int(row["age"]), row["sex"], row["treatment"], row["response"])
             )
             conn.execute(
                 """
-                INSERT INTO samples (sample, subject, sample_type, time_from_treatment_start)
+                INSERT INTO samples (sample_id, subject_id, sample_type, time_from_treatment_start)
                 VALUES (?, ?, ?, ?)
                 """,
                 (row["sample"], row["subject"], row["sample_type"], int(row["time_from_treatment_start"]))
@@ -64,7 +64,7 @@ def load_csv(conn: sqlite3.Connection, csv_path: Path) -> None:
             for population in POPULATIONS:
                 conn.execute(
                     """
-                    INSERT INTO cell_counts (sample, population, count)
+                    INSERT INTO cell_counts (sample_id, population, count)
                     VALUES (?, ?, ?)
                     """,
                     (row["sample"], population, int(row[population]))

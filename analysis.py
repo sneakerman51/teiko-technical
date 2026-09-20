@@ -126,7 +126,10 @@ def plot_boxplots(cohort: pd.DataFrame) -> Figure:
         ax.set_title(population)
         ax.set_ylabel("Relative frequency (%)")
 
-    fig.suptitle(f"Melanoma / miraclib / PBMC, time from treatment start = {timepoints[0]}")
+    fig.suptitle(
+        "Cell Population Frequencies: Responders vs Non-Responders\n"
+        f"{CONDITION.title()}, {TREATMENT.title()}, {SAMPLE_TYPE} samples"
+    )
     fig.tight_layout()
     return fig
 

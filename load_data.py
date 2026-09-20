@@ -76,13 +76,9 @@ def main() -> None:
     if DB_PATH.exists():
         DB_PATH.unlink()
     
-    conn = get_connection()
-    try:
+    with get_connection() as conn:
         init_db(conn)
         load_csv(conn, CSV_PATH)
-        conn.commit()
-    finally:
-        conn.close()
 
 
 if __name__ == "__main__":
